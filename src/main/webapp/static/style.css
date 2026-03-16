@@ -1,0 +1,53 @@
+body {
+    /* Hình nền mặc định */
+    background-image: url('https://images.unsplash.com/photo-1504608524841-42fe6f032b4b?q=80&w=1920&auto=format&fit=crop');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+    transition: background-image 0.5s ease-in-out;
+    min-height: 100vh;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.weather-container {
+    max-width: 900px;
+    background-color: rgba(255, 255, 255, 0.85) !important; /* Trắng trong suốt 85% */
+    backdrop-filter: blur(10px); /* Hiệu ứng kính mờ */
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.weather-main-icon {
+    font-size: 5rem;
+    line-height: 1;
+}
+
+.weather-tabs::-webkit-scrollbar {
+    display: none;
+}
+.weather-tabs {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+    white-space: nowrap;
+}
+
+.btn-outline-secondary {
+    color: #5f6368;
+    border-color: #dadce0;
+}
+
+.btn-outline-secondary:hover {
+    background-color: #f1f3f4;
+    color: #202124;
+    border-color: #dadce0;
+}
+
+.active-tab, .btn-primary {
+    background-color: #1a73e8 !important;
+    border-color: #1a73e8 !important;
+}
+
+.hourly-scroll {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+}
