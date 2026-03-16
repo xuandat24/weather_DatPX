@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
     let currentWeatherData = null;
+    let currentForecastData = null; // THÊM DÒNG NÀY
 
     // Bộ sưu tập hình nền đặc trưng
     const cityBackgrounds = {
@@ -35,6 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
 
+    // Hàm gọi dự báo 5 ngày mới thêm
     function fetchForecastData(city) {
         fetch(`/api/forecast?city=${city}`)
             .then(response => {
@@ -42,12 +44,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                updateHourlyForecast(data.list);
+                currentForecastData = data; // Lưu lại dữ liệu dự báo để dùng lại khi bấm tab
+
+                // Lấy tab hiện tại đang active (mặc định là temp)
+                const activeTab = document.querySelector('.active-tab');
+                const dataType = activeTab ? activeTab.getAttribute('data-type') : 'temp';
+
+                updateHourlyForecast(data.list, dataType);
                 updateDailyForecast(data.list);
             })
             .catch(error => console.error("Lỗi Forecast:", error));
     }
-
 
     // ============================================
     // 2. CÁC HÀM CẬP NHẬT GIAO DIỆN (UI)
@@ -93,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
         return iconMap[iconCode] || 'bi-cloud-fill text-secondary';
     }
 
-    function updateHourlyForecast(list) {
+    function updateHourlyForecast(list, dataType = 'temp') {
         const hourlyContainer = document.getElementById('hourly-forecast');
         hourlyContainer.innerHTML = '';
 
@@ -101,20 +108,39 @@ document.addEventListener('DOMContentLoaded', function() {
             let item = list[i];
             let date = new Date(item.dt * 1000);
             let timeStr = date.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
-            let windSpeed = Math.round(item.wind.speed);
-            let iconClass = getWeatherIcon(item.weather[0].icon);
+
+            let displayValue = '';
+            let topIconClass = ''; // Icon nhỏ hiển thị trên con số
+            let bottomIconClass = getWeatherIcon(item.weather[0].icon); // Icon thời tiết (Mây, mưa, nắng...)
+
+            // Kiểm tra xem tab nào đang được chọn để lấy đúng dữ liệu
+            if (dataType === 'temp') {
+                displayValue = Math.round(item.main.temp) + '°';
+                topIconClass = 'bi-thermometer-half text-danger';
+            } else if (dataType === 'wind') {
+                displayValue = Math.round(item.wind.speed) + ' mph';
+                topIconClass = 'bi-wind text-secondary';
+            } else if (dataType === 'precipitation') {
+                // pop = Probability of precipitation (Tỉ lệ mưa từ 0 đến 1)
+                let pop = Math.round((item.pop || 0) * 100);
+                displayValue = pop + '%';
+                topIconClass = 'bi-cloud-rain text-primary';
+            } else {
+                // UV, AQI, Sunset không có dữ liệu theo giờ trong API này
+                displayValue = '-';
+                topIconClass = 'bi-dash text-secondary';
+            }
 
             hourlyContainer.innerHTML += `
                 <div class="col px-2" style="min-width: 80px;">
                     <div class="text-muted small mb-2">${timeStr.toLowerCase()}</div>
-                    <div class="mb-2 fw-bold">${windSpeed} mph</div>
-                    <i class="bi bi-wind fs-5 text-secondary d-block mb-1"></i>
-                    <i class="bi ${iconClass} fs-4"></i>
+                    <div class="mb-2 fw-bold">${displayValue}</div>
+                    <i class="bi ${topIconClass} fs-5 d-block mb-1"></i>
+                    <i class="bi ${bottomIconClass} fs-4"></i>
                 </div>
             `;
         }
     }
-
     function updateDailyForecast(list) {
         const dailyContainer = document.getElementById('daily-forecast');
         dailyContainer.innerHTML = '';
@@ -227,6 +253,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 mainValue.innerText = hours + ':' + minutes.substr(-2);
                 mainUnit.innerText = 'PM';
                 mainIcon.className = 'bi bi-sunrise text-warning weather-main-icon me-3';
+            }
+            if (currentForecastData) {
+                updateHourlyForecast(currentForecastData.list, dataType);
             }
         });
     });
